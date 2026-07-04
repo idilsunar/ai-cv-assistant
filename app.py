@@ -105,12 +105,46 @@ if st.button("Analyze CV"):
     elif not job_description.strip():
         st.warning("Please paste a job description.")
     else:
-        with st.spinner("Analyzing your CV..."):
-            cv_text = extract_text(uploaded_cv)
+        progress_bar = st.progress(0)
+        status_text = st.empty()
 
-            if not cv_text.strip():
-                st.error("Could not extract text from the CV. Please try another file.")
-            else:
-                result = analyze_cv(cv_text, job_description)
-                st.subheader("AI Analysis")
+        status_text.text("Extracting CV text...")
+        progress_bar.progress(25)
+
+        cv_text = extract_text(uploaded_cv)
+
+        if not cv_text.strip():
+            st.error("Could not extract text from the CV. Please try another file.")
+        else:
+            status_text.text("Sending CV and job description to Gemini...")
+            progress_bar.progress(60)
+
+            result = analyze_cv(cv_text, job_description)
+
+            status_text.text("Generating final analysis...")
+            progress_bar.progress(100)
+
+            st.success("Analysis completed successfully.")
+
+            tab1, tab2, tab3 = st.tabs([
+                "AI Analysis",
+                "Export",
+                "Project Notes"
+            ])
+
+            with tab1:
                 st.markdown(result)
+
+            with tab2:
+                st.download_button(
+                    label="Download Analysis as TXT",
+                    data=result,
+                    file_name="cv_analysis.txt",
+                    mime="text/plain"
+                )
+
+            with tab3:
+                st.write(
+                    "This tool uses document parsing, prompt engineering, and Gemini API integration "
+                    "to support CV tailoring and job application preparation."
+                )
